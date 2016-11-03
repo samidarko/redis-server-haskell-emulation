@@ -17,6 +17,8 @@ import qualified Data.List.Split as Sp
 
 data RType = RSString String | RBString String | RError String | RInt Int | RBSNull | RArr [RType] deriving (Show, Eq)
 
+-- TODO should avoid the use of `error`
+
 delimiter = "\r\n"
 
 toRType :: String -> RType
