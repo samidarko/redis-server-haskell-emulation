@@ -15,11 +15,27 @@ module Redis (
     , processCommand
 ) where
 
+import Data.Char (toLower)
+
 data RType = RSString String | RBString String | RError String | RInt Int | RBSNull | RArr [RType] deriving (Show, Eq)
 
 -- TODO should avoid the use of `error`
 
+-- helpers functions
 delimiter = "\r\n"
+
+splitFirst :: [Char] -> ([Char], [Char])
+splitFirst s = (takeWhile (\x -> x /= '\r') s, dropUntil (\x -> x == '\n') s)
+
+dropUntil :: (a -> Bool) -> [a] -> [a]
+dropUntil f (x:xs)
+    | f x = xs
+    | otherwise = dropUntil f xs
+
+
+lower :: String -> String
+lower  =  map toLower
+-- end of helpers functions
 
 toRType :: String -> (RType, String)
 toRType ('+':xs) = toRSString xs
@@ -52,15 +68,6 @@ toRArr s = let t = splitFirst s
                        in fst y : if null $ snd y then [] else fn $ snd y
            in if (read (fst t) :: Int) == 0 then (RArr [], "") else (RArr (fn $ snd t), "")
 
-splitFirst :: [Char] -> ([Char], [Char])
-splitFirst s = (takeWhile (\x -> x /= '\r') s, dropUntil (\x -> x == '\n') s)
-
-dropUntil :: (a -> Bool) -> [a] -> [a]
-dropUntil f (x:xs)
-    | f x = xs
-    | otherwise = dropUntil f xs
-
-
 fromRType :: RType -> String
 fromRType s@(RSString _) = "+" ++ fromRSString s
 fromRType s@(RError _) = "-" ++ fromRError s
@@ -91,10 +98,19 @@ fromRArr (x:xs) =  fromRType x ++ fromRArr xs
 fromRArr [] =  []
 
 processCommand :: String -> String
-processCommand s = interpretCommand $ (fst (toRType s))
+processCommand s = checkCommand $ (fst (toRType s))
 
 
-interpretCommand :: RType -> String
-interpretCommand c@(RArr xs) = "receive an arr" ++ delimiter
-interpretCommand _ = "command should be an array " ++ delimiter
+checkCommand :: RType -> String
+checkCommand c@(RArr xs) = "+received " ++ run xs ++ delimiter
+checkCommand _ = "+command should be an array " ++ delimiter
+
+run :: [RType] -> String
+run (RBString(y):ys)
+    | lower y == "set" = "set"
+    | lower y == "get" = "set"
+    | lower y == "del" = "del"
+    | lower y == "exists" = "exists"
+    | otherwise = "unknown command"
+
 

@@ -3,7 +3,7 @@ import Test.Hspec
 import Control.Exception (evaluate)
 import Redis
 
--- TODO group by from and to + idempotent
+-- TODO group by from and to
 -- TODO test errors
 main :: IO ()
 main = hspec $ do
@@ -21,6 +21,11 @@ main = hspec $ do
 
       it "fromRSString returns RSString as String" $ do
         fromRSString (RSString "Hello") `shouldBe` "Hello\r\n"
+
+      it "from and to" $ do
+        fromRSString (fst $ toRSString "Hello\r\n") `shouldBe` "Hello\r\n"
+--        toRSString $ fromRSString (RSString "Hello") `shouldBe` (RSString "Hello", "")
+
 
     describe "Errors" $ do
 

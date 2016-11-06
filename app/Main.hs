@@ -2,7 +2,7 @@ module Main where
 
 import Redis
 import System.IO
-import Network.Socket hiding (recv)
+import Network.Socket hiding (recv, send)
 import qualified Data.ByteString as S
 import Network.Socket.ByteString (recv, sendAll)
 import qualified Data.ByteString.Char8 as C
@@ -17,7 +17,7 @@ runConn :: (Socket, SockAddr) -> IO ()
 runConn (sock, _) = do
     msg <- recv sock 1024
     print msg
-    sendAll sock $ C.pack $ processCommand $ C.unpack msg
+    sendAll sock $ C.pack (processCommand $ C.unpack msg)
     print "message sent\r\n"
     close sock
 
