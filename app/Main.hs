@@ -1,7 +1,11 @@
 module Main where
 
+import Redis
 import System.IO
-import Network.Socket
+import Network.Socket hiding (recv)
+import qualified Data.ByteString as S
+import Network.Socket.ByteString (recv, sendAll)
+import qualified Data.ByteString.Char8 as C
 
 mainLoop :: Socket -> IO ()
 mainLoop sock = do
@@ -11,11 +15,11 @@ mainLoop sock = do
 
 runConn :: (Socket, SockAddr) -> IO ()
 runConn (sock, _) = do
-    hdl <- socketToHandle sock ReadWriteMode
-    hSetBuffering hdl NoBuffering
-    hPutStrLn hdl "+Hello\r"
-    -- hPutStrLn hdl "+Hello\r\n"
-    hClose hdl
+    msg <- recv sock 1024
+    print msg
+    sendAll sock $ C.pack $ processCommand $ C.unpack msg
+    print "message sent\r\n"
+    close sock
 
 main :: IO ()
 main = do
