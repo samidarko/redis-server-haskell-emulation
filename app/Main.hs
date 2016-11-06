@@ -25,6 +25,6 @@ main :: IO ()
 main = do
     sock <- socket AF_INET Stream 0    -- create socket
     setSocketOption sock ReuseAddr 1   -- make socket immediately reusable - eases debugging.
-    bind sock (SockAddrInet 6388 iNADDR_ANY)   -- listen on TCP port 4242.
+    bind sock (SockAddrInet 6388 iNADDR_ANY)   -- listen on TCP port 6388.
     listen sock 2                              -- set a max of 2 queued connections
     mainLoop sock
