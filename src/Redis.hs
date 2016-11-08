@@ -3,11 +3,13 @@ module Redis where
 import Data.Char (toLower)
 
 data RType = RSString String | RBString String | RError String | RInt Int | RBSNull | RArr [RType] deriving (Show, Eq)
-data State = State {status :: String } deriving Show
+type SKey = String
+type Store = [(SKey, RType)]
+data State = State {status :: String, store :: Store } deriving Show
 
 
-initialState :: String -> State
-initialState s = State {status=s}
+initialState :: String -> Store -> State
+initialState status store = State {status=status, store=store}
 
 -- TODO should avoid the use of `error`
 
