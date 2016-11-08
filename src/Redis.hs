@@ -1,23 +1,13 @@
-module Redis (
-    RType(..)
-    , toRType
-    , toRSString
-    , toRBString
-    , toRError
-    , toRInt
-    , toRArr
-    , fromRType
-    , fromRSString
-    , fromRError
-    , fromRInt
-    , fromRBString
-    , fromRArr
-    , processCommand
-) where
-
+module Redis where
+-- I was exporting only some functions but some weren't found in Main...?
 import Data.Char (toLower)
 
 data RType = RSString String | RBString String | RError String | RInt Int | RBSNull | RArr [RType] deriving (Show, Eq)
+data State = State {status :: String } deriving Show
+
+
+initialState :: String -> State
+initialState s = State {status=s}
 
 -- TODO should avoid the use of `error`
 
@@ -97,13 +87,12 @@ fromRArr :: [RType] -> String
 fromRArr (x:xs) =  fromRType x ++ fromRArr xs
 fromRArr [] =  []
 
-processCommand :: String -> String
-processCommand s = checkCommand $ (fst (toRType s))
+processCommand :: String -> State -> IO State
+processCommand str st = return $ checkCommand (fst (toRType str)) st
 
-
-checkCommand :: RType -> String
-checkCommand c@(RArr xs) = "+received " ++ run xs ++ delimiter
-checkCommand _ = "+command should be an array " ++ delimiter
+checkCommand :: RType -> State -> State
+checkCommand c@(RArr xs) s = s {status="+received " ++ run xs ++ delimiter}
+checkCommand _ s = s {status="+command should be an array " ++ delimiter}
 
 run :: [RType] -> String
 run (RBString(y):ys)
@@ -114,3 +103,4 @@ run (RBString(y):ys)
     | otherwise = "unknown command"
 
 
+-- TODO INCR use a Functor for RType ?
