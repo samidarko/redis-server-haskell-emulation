@@ -28,7 +28,7 @@ stack runghc app/Main.hs
 
 ## Screenshot
 
-<img src="https://github.com/samidarko/redis-server-haskell-emulation/blob/master/screenshot.png" alt="alt text" width="250" height="150">
+<img src="https://github.com/samidarko/redis-server-haskell-emulation/blob/master/screenshot.png" alt="alt text" width="600" height="400">
 
 ## TODO
 
