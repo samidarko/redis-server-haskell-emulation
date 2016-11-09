@@ -94,22 +94,37 @@ processCommand :: String -> State -> IO State
 processCommand str st = return $ checkCommand (fst (toRType str)) st
 
 checkCommand :: RType -> State -> State
---checkCommand c@(RArr xs) s = s {status="+received " ++ run xs ++ delimiter}
 checkCommand c@(RArr xs) s = run xs s
-checkCommand _ s = s {status="+command should be an array " ++ delimiter}
+checkCommand _ s = s {status="-command should be an array "}
 
 run :: [RType] -> State -> State
 run c@(RBString(y):ys) s
---    | lower y == "set" = "set"
---    | lower y == "get" = "set"
---    | lower y == "del" = "del"
-    | lower y == "exists" = ifExists c s
-    | otherwise = s {status="+unknow command " ++ delimiter}
+    | lower y == "set" = set c s
+    | lower y == "get" = get c s
+--    | lower y == "del" = del c s
+    | lower y == "exists" = exists c s
+    | otherwise = s {status="-unknow command "}
 
-ifExists :: [RType] -> State -> State
-ifExists c@(x:k:_) s
-    | length c < 2 = s {status="+key is missing " ++ delimiter}
-    | otherwise = s {status=":0"  ++ delimiter}
---    | otherwise = case (M.lookup k [("key",RBSNull)]) of Nothing -> s {status=":0"  ++ delimiter}
---                                                         Just(_) -> s {status=":1"  ++ delimiter}
+exists :: [RType] -> State -> State
+exists c s
+    | length c < 2 = s {status="-(error) wrong number of arguments (given 0, expected 1)"}
+    | otherwise = fn c
+    where fn (x:k:_) = case (M.lookup (fromRType k) (store s)) of
+                        Nothing -> s {status=":0"}
+                        Just(_) -> s {status=":1"}
+
+set :: [RType] -> State -> State
+set c s
+    | length c < 3 = s {status="+OK"}
+    | otherwise = fn c
+    where fn (x:k:v:_) = s {status="+OK", store=(M.insert (fromRType k) v (store s))}
+
+get :: [RType] -> State -> State
+get c s
+    | length c < 2 = s {status="-(error) wrong number of arguments (given 0, expected 1)"}
+    | otherwise = fn c
+    where fn (x:k:_) = case (M.lookup (fromRType k) (store s)) of
+                        Nothing -> s {status="+(nil)"}
+                        Just(x) -> s {status="+" ++ show x}
+
 

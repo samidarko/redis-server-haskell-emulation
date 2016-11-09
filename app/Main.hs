@@ -19,8 +19,8 @@ runConn (sock, _) s = do
     msg <- recv sock 1024
     print msg
     newState <- processCommand (C.unpack msg) s
-    sendAll sock $ C.pack (status newState)
-    print "message sent\r\n"
+    sendAll sock $ C.pack ((status newState) ++ delimiter)
+    print newState
     close sock
     return newState
 
