@@ -1,15 +1,16 @@
 module Redis where
 -- I was exporting only some functions but some weren't found in Main...?
 import Data.Char (toLower)
+import qualified Data.Map as M
 
 data RType = RSString String | RBString String | RError String | RInt Int | RBSNull | RArr [RType] deriving (Show, Eq)
 type SKey = String
-type Store = [(SKey, RType)]
+type Store = M.Map [Char] RType
 data State = State {status :: String, store :: Store } deriving Show
 
 
-initialState :: String -> Store -> State
-initialState status store = State {status=status, store=store}
+initialState :: State
+initialState = State {status="", store=M.fromList []}
 
 -- TODO should avoid the use of `error`
 
@@ -93,16 +94,22 @@ processCommand :: String -> State -> IO State
 processCommand str st = return $ checkCommand (fst (toRType str)) st
 
 checkCommand :: RType -> State -> State
-checkCommand c@(RArr xs) s = s {status="+received " ++ run xs ++ delimiter}
+--checkCommand c@(RArr xs) s = s {status="+received " ++ run xs ++ delimiter}
+checkCommand c@(RArr xs) s = run xs s
 checkCommand _ s = s {status="+command should be an array " ++ delimiter}
 
-run :: [RType] -> String
-run (RBString(y):ys)
-    | lower y == "set" = "set"
-    | lower y == "get" = "set"
-    | lower y == "del" = "del"
-    | lower y == "exists" = "exists"
-    | otherwise = "unknown command"
+run :: [RType] -> State -> State
+run c@(RBString(y):ys) s
+--    | lower y == "set" = "set"
+--    | lower y == "get" = "set"
+--    | lower y == "del" = "del"
+    | lower y == "exists" = ifExists c s
+    | otherwise = s {status="+unknow command " ++ delimiter}
 
+ifExists :: [RType] -> State -> State
+ifExists c@(x:k:_) s
+    | length c < 2 = s {status="+key is missing " ++ delimiter}
+    | otherwise = s {status=":0"  ++ delimiter}
+--    | otherwise = case (M.lookup k [("key",RBSNull)]) of Nothing -> s {status=":0"  ++ delimiter}
+--                                                         Just(_) -> s {status=":1"  ++ delimiter}
 
--- TODO INCR use a Functor for RType ?

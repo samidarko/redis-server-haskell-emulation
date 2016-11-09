@@ -31,4 +31,4 @@ main = do
     setSocketOption sock ReuseAddr 1   -- make socket immediately reusable - eases debugging.
     bind sock (SockAddrInet 6388 iNADDR_ANY)   -- listen on TCP port 6388.
     listen sock 2                              -- set a max of 2 queued connections
-    mainLoop sock (initialState "" [])
+    mainLoop sock (initialState)
