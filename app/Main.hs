@@ -11,8 +11,8 @@ import qualified Data.ByteString.Char8 as C
 mainLoop :: Socket -> State -> IO ()
 mainLoop sock state = do
     conn <- accept sock     -- accept a connection and handle it
-    runConn conn state           -- run our server's logic
-    mainLoop sock state         -- repeat
+    s <- runConn conn state           -- run our server's logic
+    mainLoop sock s         -- repeat
 
 runConn :: (Socket, SockAddr) -> State -> IO State
 runConn (sock, _) s = do

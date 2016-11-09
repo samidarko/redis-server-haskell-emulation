@@ -109,7 +109,7 @@ exists :: [RType] -> State -> State
 exists c s
     | length c < 2 = s {status="-(error) wrong number of arguments (given 0, expected 1)"}
     | otherwise = fn c
-    where fn (x:k:_) = case (M.lookup (fromRType k) (store s)) of
+    where fn (x:RBString(k):_) = case (M.lookup k (store s)) of
                         Nothing -> s {status=":0"}
                         Just(_) -> s {status=":1"}
 
@@ -117,14 +117,14 @@ set :: [RType] -> State -> State
 set c s
     | length c < 3 = s {status="+OK"}
     | otherwise = fn c
-    where fn (x:k:v:_) = s {status="+OK", store=(M.insert (fromRType k) v (store s))}
+    where fn (x:RBString(k):v:_) = s {status="+OK", store=(M.insert k v (store s))}
 
 get :: [RType] -> State -> State
 get c s
     | length c < 2 = s {status="-(error) wrong number of arguments (given 0, expected 1)"}
     | otherwise = fn c
-    where fn (x:k:_) = case (M.lookup (fromRType k) (store s)) of
+    where fn (x:RBString(k):_) = case (M.lookup k (store s)) of
                         Nothing -> s {status="+(nil)"}
-                        Just(x) -> s {status="+" ++ show x}
+                        Just(x) -> s {status="+" ++ fromRType x}
 
 
