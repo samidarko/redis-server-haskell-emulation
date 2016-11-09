@@ -26,6 +26,11 @@ Execute:
 stack runghc app/Main.hs
 ```
 
+## Screenshot
+
+![Screenshot]
+(https://github.com/samidarko/redis-server-haskell-emulation/blob/master/screenshot.png)
+
 ## TODO
 
  * Write more tests
