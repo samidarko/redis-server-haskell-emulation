@@ -101,7 +101,7 @@ run :: [RType] -> State -> State
 run c@(RBString(y):ys) s
     | lower y == "set" = set c s
     | lower y == "get" = get c s
---    | lower y == "del" = del c s
+    | lower y == "del" = del c s
     | lower y == "exists" = exists c s
     | otherwise = s {status="-unknow command "}
 
@@ -125,6 +125,14 @@ get c s
     | otherwise = fn c
     where fn (x:RBString(k):_) = case (M.lookup k (store s)) of
                         Nothing -> s {status="+(nil)"}
-                        Just(x) -> s {status="+" ++ fromRType x}
+                        Just(x) -> s {status=fromRType x}
 
+
+del :: [RType] -> State -> State
+del c s
+    | length c < 2 = s {status="-(error) ERR wrong number of arguments for 'del' command"}
+    | otherwise = fn c
+    where fn (x:RBString(k):_) = case (M.lookup k (store s) >>= (\x -> return (M.delete k (store s)))) of
+                                    Nothing -> s {status=":0"}
+                                    Just(x) -> s {status=":1", store=x}
 
