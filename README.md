@@ -30,6 +30,10 @@ stack runghc app/Main.hs
 
 <img src="https://github.com/samidarko/redis-server-haskell-emulation/blob/master/screenshot.png" alt="alt text" width="600" height="400">
 
+## Supported commands
+
+SET, GET, DEL, EXISTS, INCR and DECR
+
 ## TODO
 
  * Write more tests

@@ -2,6 +2,7 @@ module Redis where
 -- I was exporting only some functions but some weren't found in Main...?
 import Data.Char (toLower)
 import qualified Data.Map as M
+import Text.Read(readMaybe)
 
 data RType = RSString String | RBString String | RError String | RInt Int | RBSNull | RArr [RType] deriving (Show, Eq)
 type SKey = String
@@ -103,6 +104,8 @@ run c@(RBString(y):ys) s
     | lower y == "get" = get c s
     | lower y == "del" = del c s
     | lower y == "exists" = exists c s
+    | lower y == "incr" = modInt c s (+1)
+    | lower y == "decr" = modInt c s (\x -> x-1)
     | otherwise = s {status="-unknow command "}
 
 exists :: [RType] -> State -> State
@@ -132,7 +135,16 @@ del :: [RType] -> State -> State
 del c s
     | length c < 2 = s {status="-(error) ERR wrong number of arguments for 'del' command"}
     | otherwise = fn c
-    where fn (x:RBString(k):_) = case (M.lookup k (store s) >>= (\x -> return (M.delete k (store s)))) of
+    where fn (x:RBString(k):_) = case (
+            M.lookup k (store s) >>= (\x -> return (M.delete k (store s)))) of
                                     Nothing -> s {status=":0"}
                                     Just(x) -> s {status=":1", store=x}
+
+modInt :: [RType] -> State -> (Int -> Int) -> State
+modInt c s f
+    | length c < 2 = s {status="-(error) wrong number of arguments (given 0, expected 1)"}
+    | otherwise = fn c
+    where fn (x:RBString(k):_) = case (M.lookup k (store s) >>= (\(x) -> case x of RBString(x) -> readMaybe x :: Maybe Int; _ -> Nothing) >>= (\x -> return (f x))) of
+                                    Nothing -> s {status=":1", store=(M.insert k (RBString "1") (store s))}
+                                    Just(x) -> s {status=":" ++ show x, store=(M.insert k (RBString $ show x) (store s))}
 
